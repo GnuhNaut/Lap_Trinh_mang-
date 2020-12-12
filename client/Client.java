@@ -1,6 +1,6 @@
 // TRuong Tuan Hung
 // ?18020586
-package client;
+// package client;
 
 import java.io.*;
 import java.net.*;
@@ -9,72 +9,185 @@ import java.lang.Runnable;
 import java.lang.Thread;
 import java.security.MessageDigest;
 import java.math.BigInteger;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.Socket;
 
-public class Client {
-    private static int PORT = 2000;
-    private static String IP = "127.0.0.1";
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+public class Client extends JPanel{
+    // private static int PORT = 2000;
+    // private static String IP = "127.0.0.1";
     private String userName;
     private String address;
     private int port;
 
-    public Client(String address, int port){
+    private static final long serialVersionUID = 1L;
+    private JTextArea textArea;
+    private JButton btnNewButton;
+    private JLabel lblNewLabel;
+    private JLabel lblHistory;
+    private JTextArea textArea_1;
+
+    Thread thread;
+    PrintStream toServer;
+
+    public Client(String address, int port, String name){
         this.address = address;
         this.port = port;
+        this.userName = name;
+        try {
+            GroupLayout groupLayout = new GroupLayout(this);
+            groupLayout.setHorizontalGroup(
+                            groupLayout.createParallelGroup(Alignment.LEADING)
+                                            .addGroup(groupLayout.createSequentialGroup().addGap(332)
+                                                            .addComponent(getLblHistory(), GroupLayout.DEFAULT_SIZE, 67,
+                                                                            Short.MAX_VALUE)
+                                                            .addGap(339))
+                                            .addGroup(groupLayout
+                                                            .createSequentialGroup().addGap(12)
+                                                            .addComponent(getTextArea_1(), GroupLayout.DEFAULT_SIZE, 714,
+                                                                            Short.MAX_VALUE)
+                                                            .addGap(12))
+                                            .addGroup(groupLayout.createSequentialGroup().addGap(12).addGroup(groupLayout
+                                                            .createParallelGroup(Alignment.LEADING)
+                                                            .addGroup(groupLayout.createSequentialGroup().addGap(168)
+                                                                            .addComponent(getLblNewLabel(),
+                                                                                            GroupLayout.DEFAULT_SIZE, 230,
+                                                                                            Short.MAX_VALUE)
+                                                                            .addGap(147))
+                                                            .addComponent(getTextArea(), GroupLayout.DEFAULT_SIZE, 545,
+                                                                            Short.MAX_VALUE))
+                                                            .addGap(12).addComponent(getBtnNewButton(), GroupLayout.DEFAULT_SIZE,
+                                                                            157, Short.MAX_VALUE)
+                                                            .addGap(12)));
+            groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(groupLayout
+                            .createSequentialGroup().addComponent(getLblHistory(), GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE)
+                            .addGap(6).addComponent(getTextArea_1(), GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE).addGap(1)
+                            .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+                                            .addGroup(groupLayout.createSequentialGroup()
+                                                            .addComponent(getLblNewLabel(), GroupLayout.PREFERRED_SIZE, 27,
+                                                                            GroupLayout.PREFERRED_SIZE)
+                                                            .addComponent(getTextArea(), GroupLayout.DEFAULT_SIZE, 154,
+                                                                            Short.MAX_VALUE))
+                                            .addGroup(groupLayout.createSequentialGroup().addGap(26).addComponent(
+                                                            getBtnNewButton(), GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)))
+                            .addGap(13)));
+            setLayout(groupLayout);
+        } catch (Exception e) {
+            System.out.println("Error while create Main Panel");
+        }
+    }
+    private void initComponents() {
+    }
+
+    public JTextArea getTextArea() {
+        if (textArea == null) {
+            textArea = new JTextArea();
+            textArea.setFont(new Font("Arial", Font.PLAIN, 26));
+        }
+        return textArea;
+    }
+
+    public JButton getBtnNewButton() {
+        if (btnNewButton == null) {
+            btnNewButton = new JButton("SEND");
+            btnNewButton.setBackground(Color.CYAN);
+            btnNewButton.setForeground(Color.RED);
+            btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 26));
+        }
+        return btnNewButton;
+    }
+
+    public JLabel getLblNewLabel() {
+        if (lblNewLabel == null) {
+            lblNewLabel = new JLabel("Type the mess here to send");
+            lblNewLabel.setForeground(Color.GRAY);
+            lblNewLabel.setFont(new Font("Tahoma", Font.ITALIC, 18));
+        }
+        return lblNewLabel;
+    }
+
+    public JLabel getLblHistory() {
+        if (lblHistory == null) {
+            lblHistory = new JLabel("History");
+            lblHistory.setForeground(Color.GRAY);
+            lblHistory.setFont(new Font("Tahoma", Font.ITALIC, 18));
+        }
+        return lblHistory;
+    }
+
+    public JTextArea getTextArea_1() {
+        if (textArea_1 == null) {
+            textArea_1 = new JTextArea();
+            textArea_1.setFont(new Font("Arial", Font.PLAIN, 30));
+        }
+        return textArea_1;
+    }
+
+    public JTextArea getMess() {
+        return textArea_1;
     }
 
     public void run(){
         try{
             Socket socket = new Socket(address, port);
             System.out.println("Connected");
-
-            
-            PrintStream toServer = new PrintStream(socket.getOutputStream());
-            Scanner scanner = new Scanner(System.in);
-
-            System.out.print("Enter a user name: ");
-            this.userName = scanner.nextLine();
+            toServer = new PrintStream(socket.getOutputStream());
             toServer.println(this.userName);
             
-            Thread thread = new Thread(new ReceivedMessagesHandler(socket.getInputStream(), this));
+            thread = new Thread(new ReceivedMessagesHandler(socket.getInputStream(), this));
             thread.start();
             // gui mes den server
-            while(scanner.hasNextLine()){
-                String mess = scanner.nextLine();
-                // end chat
-                if(mess.equals("Bye All")){
-                    thread.stop();
-                    toServer.println("*** " + this.userName + " has left *** \n");
-                    break;
-                }
-                if(mess.contains("@SEND @")){
-                    String revName = mess.substring(7, search(mess, ' ', 2));
-                    // System.out.print("Enter a user name: " + revName);
-                    String fileName = mess.substring(search(mess, ' ', 2) + 1);
-                    // System.out.print("Enter a user name: " + fileName);
-
-                    toServer.println("@SEND " + revName);
-                    uploadFilePrivate(fileName, toServer);
-                } else if(mess.equals("#LIST") || mess.contains("#DOWNLOAD")){
-                    toServer.println(mess);
-                } else if(mess.contains("#UPLOAD")){
-                    String fileName = mess.substring(8);
-                    if(openFile(fileName)){
-                        toServer.println(mess);
-                        uploadFile(fileName, toServer);
-                        System.out.println("complete");
-                    } else {
-                        System.out.println("Error: " + fileName + " not found!");
+            btnNewButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent arg0) {
+                        if (textArea.getText().isEmpty()) return;
+                        try {
+                            String mess = textArea.getText();
+                            textArea_1.append(userName + ": " + textArea.getText() + "\n");
+                            textArea.setText("");
+                            if(mess.contains("@SEND @")){
+                                String revName = mess.substring(7, search(mess, ' ', 2));
+                                // System.out.print("Enter a user name: " + revName);
+                                String fileName = mess.substring(search(mess, ' ', 2) + 1);
+                                // System.out.print("Enter a user name: " + fileName);
+            
+                                toServer.println("@SEND " + revName);
+                                uploadFilePrivate(fileName, toServer);
+                            } else if(mess.equals("#LIST") || mess.contains("#DOWNLOAD")){
+                                toServer.println(mess);
+                            } else if(mess.contains("#UPLOAD")){
+                                String fileName = mess.substring(8);
+                                if(openFile(fileName)){
+                                    toServer.println(mess);
+                                    uploadFile(fileName, toServer);
+                                    System.out.println("complete");
+                                } else {
+                                    System.out.println("Error: " + fileName + " not found!");
+                                }
+                            } else if(mess.contains("-->@")){
+                                toServer.println(userName + mess);
+                            } else {
+                                toServer.println("[All]" + userName + ": " + mess);
+                            }
+                        } catch (Exception e) {
+                        System.out.println("Error while sendding messeger");
+                        }
                     }
-                } else if(mess.contains("-->@")){
-                    toServer.println(userName + mess);
-                } else {
-                    toServer.println("[All]" + userName + ": " + mess);
-                }
-            }
-
-            toServer.close();
-            scanner.close();
-            socket.close();
+                });
+            // toServer.close();
+            // socket.close();
         }
         catch(Exception exception){
             System.out.println(exception);
@@ -189,17 +302,14 @@ public class Client {
         }
     }
 
-    public static void main(String args[]) {
-        try {
-            Scanner scan = new Scanner(System.in);
-            System.out.print("Enter Port: ");
-            PORT = scan.nextInt();
-            Client client = new Client(IP, PORT);
-            client.run();
-        } catch (Exception x) {
-            System.out.println(x);
-        }
-    }
+    // public static void main(String args[]) {
+    //     try {
+    //         Client client = new Client(IP, PORT);
+    //         client.run();
+    //     } catch (Exception x) {
+    //         System.out.println(x);
+    //     }
+    // }
 
     private int search(String str, char c, int pos){
         try {
@@ -255,7 +365,7 @@ class ReceivedMessagesHandler implements Runnable {
                    this.client.saveFile(fileName, content, this.client.getUserName());
                 }
             } else if(!mess.contains(userName)){
-                System.out.println(mess);
+                this.client.getMess().append(mess + "\n");
             }
         }
         scanner.close();

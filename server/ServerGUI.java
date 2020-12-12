@@ -8,7 +8,10 @@
  *
  * @author huan031294
  */
-public class ServerGUI extends javax.swing.JFrame {
+package server;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JTextArea;public class ServerGUI extends javax.swing.JFrame {
 
     /**
      * Creates new form ClientGUI
@@ -42,7 +45,17 @@ public class ServerGUI extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTextArea1);
 
         jButton2.setText("Start Server");
-
+        jButton2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                try{
+                    Server server = new Server(2000);
+                    server.run();
+                } catch(Exception e){
+                    System.out.println(e);
+                }
+            }
+        });
         jButton3.setText("Disconnect");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

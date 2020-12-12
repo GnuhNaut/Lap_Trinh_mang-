@@ -84,10 +84,10 @@ public class Server {
         this.users = new ArrayList<User>();
     }
 
-    public static void main(String args[]){
-          Server server = new Server(PORT);
-          server.run();
-    }
+    // public static void main(String args[]){
+    //       Server server = new Server(PORT);
+    //       server.run();
+    // }
     
     public void chatPrivate(String userName, String mess){
         try{
